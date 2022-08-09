@@ -33,7 +33,8 @@ public class TransactionProcessor {
     @Column
     private String transactionType;
 
-
+    @Column
+    private String telcoName;
 
 
     /*public long getId() {
@@ -100,5 +101,13 @@ public class TransactionProcessor {
         this.transactionType = transactionType;
     }
 
+
+    public String getTelcoName() {
+        return telcoName;
+    }
+
+    public void setTelcoName(String telcoName) {
+        this.telcoName = telcoName;
+    }
 
 }

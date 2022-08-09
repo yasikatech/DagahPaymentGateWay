@@ -16,7 +16,6 @@ public class Util {
         return (int) Math.round(dollars / currencyChangeRatio);
     }
 
-
     public static Date getTodayDate() {
         Date today = new Date();
         //  return formatDate(calendar);

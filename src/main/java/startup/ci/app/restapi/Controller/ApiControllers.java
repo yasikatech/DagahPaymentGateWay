@@ -8,7 +8,6 @@ import startup.ci.app.restapi.Repo.TransactionProcessorRepo;
 import startup.ci.app.restapi.Repo.UserRepo;
 import startup.ci.app.restapi.Util.Util;
 
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -84,17 +83,39 @@ public class ApiControllers {
         //Checking for the payment method used to determine the final API to call
         if (transactionProcessor.getTransactionType().equalsIgnoreCase("Mobile")) {
             //Make an API call to the telco involved for the transaction MTN, Airtel or others
+            if (transactionProcessor.getTelcoName() != null && transactionProcessor.getTelcoName().equalsIgnoreCase("MTN")) {
+                /// Route the transaction to MTN for processing
+                transactionProcessor.setTransactionType("Mobile");
+                transactionProcessor.setTelcoName("MTN");
+            } else if (transactionProcessor.getTelcoName() != null && transactionProcessor.getTelcoName().equalsIgnoreCase("Airtel")) {
+                /// Route the transaction to Airtel
+                transactionProcessor.setTransactionType("Mobile");
+                transactionProcessor.setTelcoName("Airtel");
+            } else if (transactionProcessor.getTelcoName() != null && transactionProcessor.getTelcoName().equalsIgnoreCase("Orange")) {
+                // Route the transaction to Orange
+                transactionProcessor.setTransactionType("Mobile");
+                transactionProcessor.setTelcoName("Orange");
+            } else {
+                // Telco does not exist in the list
+                transactionProcessor.setTransactionType("Telco does not exist in the list");
+            }
+
             transactionProcessor.setTransactionType("Momo");
-        } else if (transactionProcessor.getTransactionType().equalsIgnoreCase("Card")) {
+
+
+        } else if (transactionProcessor.getTransactionType() != null && transactionProcessor.getTransactionType().equalsIgnoreCase("Card")) {
             // Make an API call to the Card service
             transactionProcessor.setTransactionType("Card");
-        } else if (transactionProcessor.getTransactionType().equalsIgnoreCase("Account")) {
+
+
+        } else if (transactionProcessor.getTransactionType() != null && transactionProcessor.getTransactionType().equalsIgnoreCase("Account")) {
             //Make an API call to Ecobank payment API
             transactionProcessor.setTransactionType("Account");
+
+
         } else {
             transactionProcessor.setTransactionType("Transaction type unavailable");
         }
-
 
         transactionProcessor.setTransactionDate(transactionDate);
         transactionProcessor.setTransactionReference(uniqueID);
