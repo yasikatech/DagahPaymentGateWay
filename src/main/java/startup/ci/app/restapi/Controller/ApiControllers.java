@@ -26,31 +26,30 @@ public class ApiControllers {
     private Util util;
 
 
-
     //// Setting global variables for transaction processing
     private UUID transactionReference;
     private Date transactionDate;
 
-    @GetMapping(value="/")
-    public String getPage(){
+    @GetMapping(value = "/")
+    public String getPage() {
 
         return "Welcome";
     }
 
     @GetMapping(value = "/users")
-    public List<User> getUsers(){
+    public List<User> getUsers() {
 
         return userRepo.findAll();
     }
 
     @PostMapping(value = "/save")
-    public String saveUser(@RequestBody User user){
+    public String saveUser(@RequestBody User user) {
         userRepo.save(user);
         return "Record(s) successfully saved ....";
     }
 
     @PutMapping(value = "update/{id}")
-    public String updateUser(@PathVariable long id, @RequestBody User user){
+    public String updateUser(@PathVariable long id, @RequestBody User user) {
 
         User updatedUser = userRepo.findById(id).get();
         updatedUser.setFirstName(user.getFirstName());
@@ -64,7 +63,7 @@ public class ApiControllers {
 
 
     @DeleteMapping(value = "delete/{id}")
-    public String deleteUser(@PathVariable long id){
+    public String deleteUser(@PathVariable long id) {
 
         User deleteUser = userRepo.findById(id).get();
         userRepo.delete(deleteUser);
@@ -74,15 +73,27 @@ public class ApiControllers {
 
     ///Transaction posting
     @PostMapping(value = "/postTransaction")
-    public String postTransaction(@RequestBody TransactionProcessor transactionProcessor){
+    public String postTransaction(@RequestBody TransactionProcessor transactionProcessor) {
 
         //Automatically generating the user reference number
         String uniqueID = UUID.randomUUID().toString();
 
-
-
         //Automatically assigning timestamp of the transaction
         Date transactionDate = Util.getTodayDate();
+
+        //Checking for the payment method used to determine the final API to call
+        if (transactionProcessor.getTransactionType().equalsIgnoreCase("Mobile")) {
+            //Make an API call to the telco involved for the transaction MTN, Airtel or others
+            transactionProcessor.setTransactionType("Momo");
+        } else if (transactionProcessor.getTransactionType().equalsIgnoreCase("Card")) {
+            // Make an API call to the Card service
+            transactionProcessor.setTransactionType("Card");
+        } else if (transactionProcessor.getTransactionType().equalsIgnoreCase("Account")) {
+            //Make an API call to Ecobank payment API
+            transactionProcessor.setTransactionType("Account");
+        } else {
+            transactionProcessor.setTransactionType("Transaction type unavailable");
+        }
 
 
         transactionProcessor.setTransactionDate(transactionDate);
