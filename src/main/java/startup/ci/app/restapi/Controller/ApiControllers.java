@@ -2,8 +2,11 @@ package startup.ci.app.restapi.Controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
+import startup.ci.app.restapi.Model.Merchants;
 import startup.ci.app.restapi.Model.TransactionProcessor;
 import startup.ci.app.restapi.Model.User;
+import startup.ci.app.restapi.Repo.MerchantsRepo;
 import startup.ci.app.restapi.Repo.TransactionProcessorRepo;
 import startup.ci.app.restapi.Repo.UserRepo;
 import startup.ci.app.restapi.Util.Util;
@@ -21,13 +24,15 @@ public class ApiControllers {
     @Autowired
     private TransactionProcessorRepo transactionProcessorRepo;
 
-
-    private Util util;
+    @Autowired
+    private MerchantsRepo merchantsRepo;
 
 
     //// Setting global variables for transaction processing
     private UUID transactionReference;
     private Date transactionDate;
+    private Util util;
+
 
     @GetMapping(value = "/")
     public String getPage() {
@@ -70,6 +75,27 @@ public class ApiControllers {
     }
 
 
+    //Create Merchants
+    @PostMapping(value = "/createMerchant")
+    public String merchant(@RequestBody Merchants merchant) {
+        //Auto generating merchant ID
+        String uniqueID = UUID.randomUUID().toString();
+
+        merchant.setMerchantId("DGT" + uniqueID);
+
+        merchantsRepo.save(merchant);
+
+        return "Merchants successfully created";
+    }
+
+
+    //Fetch Merchants
+    @GetMapping(value = "/fetchMerchants")
+    public List<Merchants> merchants() {
+        return merchantsRepo.findAll();
+    }
+
+
     ///Transaction posting
     @PostMapping(value = "/postTransaction")
     public String postTransaction(@RequestBody TransactionProcessor transactionProcessor) {
@@ -106,11 +132,20 @@ public class ApiControllers {
         } else if (transactionProcessor.getTransactionType() != null && transactionProcessor.getTransactionType().equalsIgnoreCase("Card")) {
             // Make an API call to the Card service
             transactionProcessor.setTransactionType("Card");
+            transactionProcessor.setTelcoName("");
 
 
         } else if (transactionProcessor.getTransactionType() != null && transactionProcessor.getTransactionType().equalsIgnoreCase("Account")) {
+            //Calling Ecobank API
+
+            String uri = "";
+            RestTemplate restTemplate = new RestTemplate();
+            String result = restTemplate.getForObject(uri, String.class);
+            //return result;
+
             //Make an API call to Ecobank payment API
             transactionProcessor.setTransactionType("Account");
+            transactionProcessor.setTelcoName("");
 
 
         } else {
@@ -122,4 +157,11 @@ public class ApiControllers {
         transactionProcessorRepo.save(transactionProcessor);
         return "Transaction successfully posted";
     }
+
+    //Fetch Transactions
+    @GetMapping(value = "/fetchTransactions")
+    public List<TransactionProcessor> fetchTransactions() {
+        return transactionProcessorRepo.findAll();
+    }
+
 }
